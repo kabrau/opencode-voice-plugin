@@ -89,7 +89,7 @@ export function resolveFfmpeg(explicit: string | null | undefined, control: Proc
     return Promise.resolve(resolved)
   }
 
-  return Promise.reject(new Error("ffmpeg não encontrado"))
+  return Promise.reject(new Error("ffmpeg not found"))
 }
 
 export interface RecordingResult {

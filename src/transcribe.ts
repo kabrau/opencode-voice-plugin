@@ -75,14 +75,14 @@ export async function transcribe(input: TranscribeInput): Promise<TranscribeOutp
 
     const raw = await response.text()
     if (!response.ok) {
-      throw new TranscribeError(`O provedor respondeu ${response.status}.`, response.status, truncate(raw))
+      throw new TranscribeError(`The provider returned ${response.status}.`, response.status, truncate(raw))
     }
 
     let parsed: { text?: unknown; usage?: { cost?: unknown; seconds?: unknown } }
     try {
       parsed = JSON.parse(raw) as typeof parsed
     } catch {
-      throw new TranscribeError("Resposta inválida do provedor.", response.status, truncate(raw))
+      throw new TranscribeError("Invalid response from the provider.", response.status, truncate(raw))
     }
 
     const text = typeof parsed.text === "string" ? parsed.text.trim() : ""
@@ -92,7 +92,7 @@ export async function transcribe(input: TranscribeInput): Promise<TranscribeOutp
   } catch (error) {
     if (error instanceof TranscribeError) throw error
     if (error instanceof Error && error.name === "AbortError") {
-      throw new TranscribeError("Tempo esgotado ao falar com o provedor.")
+      throw new TranscribeError("Timed out talking to the provider.")
     }
     throw new TranscribeError(toMessage(error))
   } finally {

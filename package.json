@@ -1,6 +1,6 @@
 {
   "name": "opencode-voice-plugin",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Voice dictation for OpenCode V2: click a mic in the prompt footer, speak, and send the transcribed text.",
   "type": "module",
   "license": "MIT",
@@ -17,6 +17,7 @@
   "files": [
     "src",
     "README.md",
+    "README.pt-BR.md",
     "LICENSE"
   ],
   "repository": {

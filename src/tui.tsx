@@ -45,7 +45,7 @@ export default Plugin.define({
     let inFlightStop: Promise<void> | undefined
     let activeSessionID: string | undefined
 
-    const notify = (message: string, variant: Variant = "info", title = "Voz"): void => {
+    const notify = (message: string, variant: Variant = "info", title = "Voice"): void => {
       context.ui.toast.show({ title, message, variant })
     }
 
@@ -83,7 +83,7 @@ export default Plugin.define({
         return ffmpegPath
       } catch {
         setReady(false)
-        notify(`ffmpeg não encontrado. ${installHint()}`, "error")
+        notify(`ffmpeg not found. ${installHint()}`, "error")
         return undefined
       }
     }
@@ -113,7 +113,7 @@ export default Plugin.define({
         const info = await context.client.session.create({ location: context.location ?? null })
         sessionID = info.id
       } catch (error) {
-        notify(failure(error), "error", "Não consegui criar a sessão")
+        notify(failure(error), "error", "Could not create the session")
         return undefined
       }
 
@@ -128,39 +128,39 @@ export default Plugin.define({
     async function deliver(text: string): Promise<void> {
       const sessionID = currentSessionID() ?? activeSessionID
       if (!sessionID) {
-        notify("Abra uma sessão para ditar.", "warning")
+        notify("Open a session to dictate.", "warning")
         return
       }
       if (settings.autoSubmit) {
         await context.client.session.prompt({ sessionID, text })
-        notify("Ditado enviado.", "success")
+        notify("Dictation sent.", "success")
         return
       }
       const description =
         settings.maxSeconds > PROVIDER_SAFE_SECONDS
-          ? "Gravações acima de 1 minuto podem falhar no provedor. Revise e edite antes de enviar."
-          : "Revise e edite antes de enviar."
-      const edited = await context.ui.dialog.prompt({ title: "Ditado", description, value: text })
+          ? "Recordings over 1 minute may fail at the provider. Review and edit before sending."
+          : "Review and edit before sending."
+      const edited = await context.ui.dialog.prompt({ title: "Dictation", description, value: text })
       const finalText = edited?.trim()
       if (!finalText) return
       await context.client.session.prompt({ sessionID, text: finalText })
-      notify("Ditado enviado.", "success")
+      notify("Dictation sent.", "success")
     }
 
     async function start(): Promise<void> {
       const { key } = resolveApiKey(settings)
       if (!key) {
         notify(
-          `Chave do OpenRouter ausente. Conecte com "opencode auth login" ou defina a variável ${settings.apiKeyEnv}.`,
+          `OpenRouter API key missing. Connect with "opencode auth login" or set the ${settings.apiKeyEnv} environment variable.`,
           "error",
-          "Chave da API ausente",
+          "Missing API key",
         )
         return
       }
 
       const sessionID = await ensureSession()
       if (!sessionID) {
-        notify("Abra uma sessão para ditar.", "warning")
+        notify("Open a session to dictate.", "warning")
         return
       }
       activeSessionID = sessionID
@@ -186,7 +186,7 @@ export default Plugin.define({
           file,
         ]
       } catch (error) {
-        notify(failure(error), "error", "Microfone")
+        notify(failure(error), "error", "Microphone")
         return
       }
 
@@ -214,13 +214,13 @@ export default Plugin.define({
           const result = await current.stop()
           if (result.code !== 0 && result.code !== null) {
             const detail = result.stderr.trim()
-            notify(`ffmpeg terminou com código ${result.code}.${detail ? ` ${detail}` : ""}`, "error", "Falha na gravação")
+            notify(`ffmpeg exited with code ${result.code}.${detail ? ` ${detail}` : ""}`, "error", "Recording failed")
             return
           }
 
           const { key } = resolveApiKey(settings)
           if (!key) {
-            notify(`Defina a variável de ambiente ${settings.apiKeyEnv} ou conecte o OpenRouter.`, "error", "Chave da API ausente")
+            notify(`Set the ${settings.apiKeyEnv} environment variable or connect OpenRouter.`, "error", "Missing API key")
             return
           }
 
@@ -235,7 +235,7 @@ export default Plugin.define({
           setState("idle")
 
           if (!text) {
-            notify("Não entendi nada no áudio. Tente falar mais perto do microfone.", "warning")
+            notify("Nothing was recognized in the audio. Try speaking closer to the microphone.", "warning")
             return
           }
 
@@ -285,18 +285,18 @@ export default Plugin.define({
       try {
         devices = await backend.listDevices(ffmpeg)
       } catch (error) {
-        notify(failure(error), "error", "Microfone")
+        notify(failure(error), "error", "Microphone")
         return
       }
 
       if (devices.length === 0) {
-        notify("Nenhum microfone encontrado.", "warning")
+        notify("No microphone found.", "warning")
         return
       }
 
       const current = settings.device ?? (deviceStore.name || undefined)
       const choice = await context.ui.dialog.select({
-        title: "Microfone",
+        title: "Microphone",
         current,
         options: devices.map((device) => ({ title: device, value: device })),
       })
@@ -305,7 +305,7 @@ export default Plugin.define({
       await setDeviceStore((draft) => {
         draft.name = choice
       })
-      notify(`Microfone: ${choice}`, "success")
+      notify(`Microphone: ${choice}`, "success")
     }
 
     const iconColor = (): RGBA => {
@@ -349,9 +349,9 @@ export default Plugin.define({
       commands: [
         {
           id: "voice.mic.toggle",
-          title: "Voz: ditar",
-          description: "Grava do microfone e transcreve para enviar na sessão",
-          group: "Voz",
+          title: "Voice: dictate",
+          description: "Record from the microphone and transcribe it into the session",
+          group: "Voice",
           bind: settings.keybind,
           palette: true,
           slash: { name: "voice" },
@@ -361,9 +361,9 @@ export default Plugin.define({
         },
         {
           id: "voice.mic.device",
-          title: "Voz: escolher microfone",
-          description: "Lista os microfones e guarda o escolhido",
-          group: "Voz",
+          title: "Voice: choose microphone",
+          description: "List microphones and remember the chosen one",
+          group: "Voice",
           palette: true,
           run: () => {
             void chooseDevice()

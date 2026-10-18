@@ -66,7 +66,7 @@ export const DEFAULTS: VoiceSettings = {
   apiKeyFromAuth: true,
   authIntegration: "openrouter",
   model: "openai/whisper-large-v3",
-  language: "pt",
+  language: "auto",
   baseUrl: "https://openrouter.ai/api/v1",
   device: null,
   ffmpegPath: null,

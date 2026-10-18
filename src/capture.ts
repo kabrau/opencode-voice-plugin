@@ -79,12 +79,12 @@ const CONTROL: ProcessControl = captureControl()
 
 export function installHint(): string {
   if (PLATFORM === "win32") {
-    return "Instale o ffmpeg com `choco install ffmpeg` (ou baixe em ffmpeg.org e coloque no PATH)."
+    return "Install ffmpeg with `choco install ffmpeg` (or download it from ffmpeg.org and add it to PATH)."
   }
   if (PLATFORM === "darwin") {
-    return "Instale o ffmpeg com `brew install ffmpeg`."
+    return "Install ffmpeg with `brew install ffmpeg`."
   }
-  return "Instale o ffmpeg com `sudo apt install ffmpeg pulseaudio-utils` (Debian/Ubuntu) ou o equivalente da sua distro."
+  return "Install ffmpeg with `sudo apt install ffmpeg pulseaudio-utils` (Debian/Ubuntu) or the equivalent for your distro."
 }
 
 export interface CaptureBackend {
@@ -173,7 +173,7 @@ export function pickDefaultDevice(devices: readonly string[]): string | undefine
 
 function windowsInputArgs(device?: string): string[] {
   if (!device) {
-    throw new Error("No Windows é preciso escolher um microfone DirectShow antes de gravar.")
+    throw new Error("On Windows you must pick a DirectShow microphone before recording.")
   }
   return ["-f", "dshow", "-i", `audio=${device}`]
 }
