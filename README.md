@@ -1,10 +1,16 @@
 # opencode-voice-plugin
 
-Ditado por voz para o **OpenCode V2**. Adiciona um ícone de microfone 🎤 no rodapé do prompt:
-clique (ou use o atalho), fale, e o texto transcrito volta para você revisar e enviar na sessão.
+Ditado por voz para o **OpenCode V2**: um ícone de microfone (`○`) no rodapé do prompt. Clique nele
+(ou use `ctrl+y`), fale, e o texto transcrito vira uma mensagem da sessão.
 
-A transcrição é feita via **OpenRouter** (`POST /api/v1/audio/transcriptions`). O plugin é instalado
-**na máquina** (não por projeto) e funciona em **Windows, Linux e macOS** a partir do mesmo código.
+A transcrição usa o **OpenRouter** (`POST /api/v1/audio/transcriptions`) e a chave é reaproveitada do
+próprio OpenCode quando você já tem o OpenRouter conectado — sem variável de ambiente e sem duplicar
+segredo. Funciona em **Windows, Linux e macOS** a partir do mesmo código, e é instalado **na máquina**
+(não por projeto).
+
+[Repositório](https://github.com/kabrau/opencode-voice-plugin) ·
+[Issues](https://github.com/kabrau/opencode-voice-plugin/issues) ·
+[Design](DESIGN.md) · MIT
 
 ---
 
