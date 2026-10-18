@@ -40,7 +40,8 @@
     "tui"
   ],
   "scripts": {
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "prepublishOnly": "npm run typecheck"
   },
   "dependencies": {
     "@opencode/plugin": "2.0.29"
