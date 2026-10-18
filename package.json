@@ -1,0 +1,72 @@
+{
+  "name": "opencode-voice-plugin",
+  "version": "0.1.0",
+  "description": "Voice dictation for OpenCode V2: click a mic in the prompt footer, speak, and send the transcribed text.",
+  "type": "module",
+  "license": "MIT",
+  "exports": {
+    ".": {
+      "import": "./src/index.ts",
+      "types": "./src/index.ts"
+    },
+    "./tui": {
+      "import": "./src/tui.tsx",
+      "types": "./src/tui.tsx"
+    }
+  },
+  "files": [
+    "src",
+    "README.md",
+    "LICENSE"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kabrau/opencode-voice-plugin.git"
+  },
+  "homepage": "https://github.com/kabrau/opencode-voice-plugin#readme",
+  "bugs": {
+    "url": "https://github.com/kabrau/opencode-voice-plugin/issues"
+  },
+  "author": "kabrau",
+  "keywords": [
+    "opencode",
+    "plugin",
+    "voice",
+    "dictation",
+    "speech-to-text",
+    "stt",
+    "whisper",
+    "openrouter",
+    "tui"
+  ],
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@opencode/plugin": "2.0.29"
+  },
+  "peerDependencies": {
+    "@opentui/core": ">=0.5.17",
+    "@opentui/solid": ">=0.5.17",
+    "solid-js": ">=1.9.0"
+  },
+  "peerDependenciesMeta": {
+    "@opentui/core": {
+      "optional": true
+    },
+    "@opentui/solid": {
+      "optional": true
+    },
+    "solid-js": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@opencode/theme": "2.0.29",
+    "@opentui/core": "0.6.6",
+    "@opentui/solid": "0.6.6",
+    "@types/node": "22.13.9",
+    "solid-js": "1.9.12",
+    "typescript": "5.9.3"
+  }
+}
