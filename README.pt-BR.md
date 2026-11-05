@@ -46,12 +46,17 @@ hora** (antes de gravar) e o texto é enviado nela — o mesmo que digitar e dar
 opencode plugin add opencode-voice-plugin
 ```
 
-Pronto — sem clonar nem copiar arquivo. Atualizar e remover:
+Pronto — sem clonar nem copiar arquivo. O `plugin add` grava o pacote no array `plugins` do
+`opencode.json` global, e a CLI carrega a parte de TUI automaticamente. Atualizar e remover:
 
 ```bash
 opencode plugin update opencode-voice-plugin
 opencode plugin remove opencode-voice-plugin
 ```
+
+> Use a versão **0.1.2 ou mais nova**. A 0.1.1 publicava o `tui.tsx` cru; arquivos dentro de
+> `node_modules` não passam pelo transform de JSX do OpenTUI, então ela falhava com
+> `Cannot find package 'react'`. A partir da 0.1.2 o pacote publica JavaScript compilado em `dist/`.
 
 > Para **configurar options** (ícones, atalho, dispositivo, etc.), veja
 > [Onde declarar as options](#onde-declarar-as-options) — é um detalhe que o `plugin add`
@@ -97,10 +102,16 @@ cp opencode-voice-plugin/src/* "$destino/"
 
 Depois, **reinicie o `opencode`**.
 
+> A cópia usa `src/` porque um plugin descoberto nessa pasta é carregado fora de `node_modules`, e
+> aí o transform de JSX da TUI se aplica — não precisa de build. Para instalação via npm, use o
+> `dist/` compilado (acima).
+
 ### Instalação alternativa (apontando para o clone)
 
-Aponte o `cli.json` global para o repositório clonado. Isso mantém o plugin atualizado via `git pull`
-e é o jeito de passar options, já que a pasta de descoberta não tem onde declará-las:
+Rode `npm install` dentro do clone primeiro — ele instala as ferramentas e gera o `dist/`, que é o
+que o `package.json` exporta. Aponte o `cli.json` global para o repositório clonado. Isso mantém o
+plugin atualizado via `git pull` e é o jeito de passar options, já que a pasta de descoberta não tem
+onde declará-las:
 
 ```json
 {
@@ -159,15 +170,17 @@ integração (ex.: a do Console), ajuste `authIntegration`.
 
 ### Onde declarar as options
 
-As options são lidas do **`cli.json`** (config global), **não** do `opencode.jsonc`. Isso vale
-mesmo que você tenha instalado por cópia em `plugins/voice/`: adicione a entrada abaixo ao array
-`plugins` do `~/.config/opencode/cli.json`, preservando o resto do arquivo.
+O `opencode plugin add` carrega o pacote pelo array `plugins` do **`opencode.json`** global. As
+options da TUI, porém, são lidas do **`cli.json`** global: adicione uma segunda entrada (mesmo
+pacote, mais `options`) ao array `plugins` do `~/.config/opencode/cli.json`, preservando o resto do
+arquivo. Isso vale também se você instalou por cópia em `plugins/voice/` — aponte essa entrada para
+a pasta.
 
 ```json
 {
   "plugins": [
     {
-      "package": "C:\\Users\\<você>\\.config\\opencode\\plugins\\voice",
+      "package": "opencode-voice-plugin",
       "options": {
         "autoSubmit": true
       }
@@ -176,9 +189,12 @@ mesmo que você tenha instalado por cópia em `plugins/voice/`: adicione a entra
 }
 ```
 
-> Verificado nas duas direções: com essa entrada, `context.options` recebe o objeto; declarando as
-> mesmas options no array `plugins` do **`opencode.jsonc`**, o componente de TUI recebe `{}`.
-> Não há duplicação do plugin por estar também descoberto na pasta global.
+> Para uma pasta instalada por descoberta/cópia, use o caminho absoluto dela como `package` (por
+> exemplo `C:\\Users\\<você>\\.config\\opencode\\plugins\\voice`). O formato de objeto é o mesmo.
+
+> Verificado nas duas direções no OpenCode 2.2.5: com essa entrada, `context.options` recebe o
+> objeto; declarando as mesmas options no array `plugins` do **`opencode.jsonc`**, o componente de
+> TUI recebe `{}`. Não há duplicação por o plugin também ser carregado pelo `opencode.json`.
 
 Todas as options são opcionais.
 
@@ -269,6 +285,16 @@ C:\Users\<você>\.local\share\opencode\log\opencode.log      # Windows
 Procure por `role=cli`. Confirme que os arquivos estão em `<config-global>/plugins/voice/` e
 reinicie o `opencode`.
 
+**`Cannot find package 'react'` no log**
+
+A versão 0.1.1 publicava o `tui.tsx` cru. Instalações npm ficam em `node_modules`, onde o transform
+de JSX do OpenTUI é propositalmente ignorado — o arquivo era transpilado como React. Atualize para
+0.1.2+:
+
+```bash
+opencode plugin update opencode-voice-plugin
+```
+
 **"ffmpeg não encontrado" (toast)**
 Instale o ffmpeg (comandos acima) ou aponte `ffmpegPath` explicitamente. No Windows, o plugin já
 desce automaticamente do *shim* do Chocolatey
@@ -325,9 +351,15 @@ falar.
 ## Desenvolvimento
 
 ```bash
-npm install
+npm install      # também roda o build (prepare)
 npm run typecheck
+npm run build    # src/*.ts(x) -> dist/*.js
 ```
+
+O pacote publicado exporta os arquivos compilados em `dist/`. Isso importa para plugins de TUI: o
+transform de JSX do OpenTUI só roda em arquivos fora de `node_modules`, então um pacote instalado
+via npm não pode publicar `.tsx` cru. A árvore `src/` serve à instalação por descoberta/cópia, que
+fica fora de `node_modules`.
 
 Sem dependências de runtime — apenas módulos nativos do Node (`child_process`, `fs`, `os`, `path`,
 `buffer`), que funcionam sob o Bun embutido no OpenCode.
@@ -347,6 +379,8 @@ src/capture.ts     ÚNICO módulo com lógica por plataforma
 src/ffmpeg.ts      resolução do binário, execução, parada limpa
 src/transcribe.ts  OpenRouter /audio/transcriptions
 src/settings.ts    options + env + defaults
+tsconfig.build.json  só o build (jsx: react-jsx, emite em dist/)
+dist/              entrypoints compilados (o que o npm publica)
 ```
 
 As decisões de design e a pesquisa de API (o que foi verificado e o que **não** é possível)

@@ -107,9 +107,10 @@ O OpenCode descobre plugins sob o diretório global de configuração. Nesta má
 ## Entregável
 ```
 opencode-voice-plugin/
-  package.json          # type: module, exports: { "./tui": "./src/tui.tsx" }
+  package.json          # type: module, exports: { "./tui": "./dist/tui.js" }
   tsconfig.json         # jsx: "preserve", jsxImportSource: "@opentui/solid", strict: true,
                         # skipLibCheck: true  ← OBRIGATÓRIO (ver changelog)
+  tsconfig.build.json   # build: jsx "react-jsx", emite em dist/
   README.md             # instalação (global + alternativa cli.json), config, atalhos, custo,
                         # troubleshooting por SO, e o resultado do spike do tui.prompt.append
   LICENSE               # MIT
@@ -120,17 +121,22 @@ opencode-voice-plugin/
   src/ffmpeg.ts         # resolver binário real, rodar processo, stop limpo, limpeza
   src/transcribe.ts     # OpenRouter /audio/transcriptions
   src/settings.ts       # options + env var + defaults
+  dist/                 # JS compilado — entrypoints do pacote npm
 ```
 Sem dependências de runtime: apenas `node:child_process`, `node:fs`, `node:os`, `node:path`,
 `node:buffer` (funcionam sob o Bun do OpenCode). `fetch` global para HTTP.
 
 `package.json`:
-- `dependencies`: `@opencode/plugin` (a doc usa `latest`; fixe a 2.0.29 para casar com o instalado).
+- `dependencies`: `@opencode/plugin` (a doc usa `latest`; fixada na versão do OpenCode instalado).
 - `peerDependencies`: `@opentui/core` `>=0.5.17`, `@opentui/solid` `>=0.5.17`, `solid-js` `>=1.9.0`
   (é o que a doc manda para plugins que renderizam JSX — assim o consumidor usa o OpenTUI do host).
-- `devDependencies`: `@opencode/plugin@2.0.29`, `@opentui/core`, `@opentui/solid`, `solid-js`,
+- `devDependencies`: `@opencode/plugin`, `@opentui/core`, `@opentui/solid`, `solid-js`,
   `typescript`, `@types/node`.
-- `scripts.typecheck`: `tsc --noEmit`.
+- `exports`: **`dist/` compilado**, não `src/`. O transform de JSX do OpenCode (bun-plugin-solid)
+  exclui explicitamente caminhos com `node_modules`; um pacote npm instalado ali com `.tsx` cru é
+  transpilado como React e quebra com `Cannot find package 'react'`.
+- `scripts.build`: `tsc -p tsconfig.build.json`; `prepare` roda o build (instalação via git/clone);
+  `prepublishOnly` roda typecheck + build.
 
 ## Configuração (plugin options)
 ```json
@@ -381,3 +387,21 @@ Testei com sondas nos dois entrypoints:
   mantém **uma** entrada (`voice.server`, `server:true, tui:true`).
 
 Portanto: options sempre no `cli.json`. Explicitado no README.
+
+## Changelog da revisão 4 (empacotamento npm)
+
+1. **O pacote npm publicava `.tsx` cru e não carregava.** O carregador de TUI do OpenCode usa o
+   `bun-plugin-solid`, cujo filtro exclui explicitamente qualquer caminho com `node_modules`.
+   O `src/tui.tsx` instalado via npm era transpilado como React e falhava em `stage=load` com
+   `Cannot find package 'react'` (confirmado no log, `role=cli`; ícone nunca aparecia).
+2. **Build para `dist/`.** Novo `tsconfig.build.json` com `jsx: "react-jsx"` e
+   `jsxImportSource: "@opentui/solid"`. O `package.json` exporta `dist/index.js` + `dist/tui.js`,
+   `files` publica `dist`, e `prepare`/`prepublishOnly` rodam o build. Instalação por
+   descoberta/cópia continua usando `src/` (fica fora de `node_modules`, então o transform aplica).
+3. **Verificado no Linux com OpenCode 2.2.5**: o pacote compilado carrega a partir de um caminho
+   dentro de `node_modules` sem erro. Windows não foi re-testado ponta a ponta nesta rodada, mas a
+   mudança é só de empacotamento — `capture.ts`/`ffmpeg.ts` (todo o código por plataforma) não foram
+   tocados.
+4. **Options re-verificadas na 2.2.5**: `cli.json` entrega o objeto em `context.options`;
+   `opencode.json`/`opencode.jsonc` entrega `{}` ao componente de TUI. A conclusão anterior
+   permanece válida.
